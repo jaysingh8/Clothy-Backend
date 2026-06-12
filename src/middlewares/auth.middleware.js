@@ -2,29 +2,34 @@ import jwt from 'jsonwebtoken'
 import { config } from '../config/config.js'
 import userModel from '../models/user.model.js'
 
-
 export const authenticateUser = async (req,res,next)=>{
-    const token = req.cookies.token
+    console.log("Cookies:", req.cookies);
+
+    const token = req.cookies.token;
+
+    console.log("Token:", token);
 
     if(!token){
-        return res.status(401).json({message:"unauthorized"})
+        return res.status(401).json({message:"No token"});
     }
 
+    try{
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+        console.log("Decoded:", decoded);
 
-    try {
-        const decoded = jwt.verify(token , config.JWT_SECRET)
-
-        const user = await userModel.findById(decoded.id)
+        const user = await userModel.findById(decoded.id);
+        console.log("User:", user);
 
         if(!user){
-        return res.status(401).json({message:"unauthorized"})
+            return res.status(401).json({message:"User not found"});
         }
-        req.user = user
-        next()
-    } catch (error) {
-        console.log(error)
-        return res.status(401).json({message : "Unauthorized"})
-        
+
+        req.user = user;
+        next();
+
+    }catch(err){
+        console.log("JWT Error:", err);
+        return res.status(401).json({message: err.message});
     }
 }
 
