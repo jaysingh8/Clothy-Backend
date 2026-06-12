@@ -15,6 +15,7 @@ async function sendTokenResponse(user, res, message) {
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.status(200).json({
         message,
@@ -94,34 +95,43 @@ export const login = async (req, res) => {
 
 
 export const googleCallback = async (req, res) => {
-    const { id, displayName, emails, photos } = req.user
+    try {
+        const { id, displayName, emails, photos } = req.user
 
-    const email = emails[0].value;
-    const profilePic = photos[0].value
+        if (!emails || !emails.length) {
+            return res.redirect("https://clothy-frontend-mu.vercel.app/login?error=no_email");
+        }
 
-    let user = await userModel.findOne({ email })
+        const email = emails[0].value;
 
-    if (!user) {
-        user = await userModel.create({
-            email,
-            fullname: displayName,
-            googleId: id,
+        let user = await userModel.findOne({ email })
+
+        if (!user) {
+            user = await userModel.create({
+                email,
+                fullname: displayName,
+                googleId: id,
+            })
+        }
+
+        const token = jwt.sign({
+            id: user._id,
+
+        }, config.JWT_SECRET, {
+            expiresIn: '7d'
         })
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        res.redirect("https://clothy-frontend-mu.vercel.app/")
+    } catch (error) {
+        console.error("Google callback error:", error);
+        res.redirect("https://clothy-frontend-mu.vercel.app/login?error=callback_error");
     }
-
-    const token = jwt.sign({
-        id: user._id,
-
-    }, config.JWT_SECRET, {
-        expiresIn: '7d'
-    })
-
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-    });
-    res.redirect("https://clothy-frontend-mu.vercel.app/")
 }
 
 
