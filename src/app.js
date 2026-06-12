@@ -1,33 +1,30 @@
 import express from 'express'
-import cookieParser from 'cookie-parser';
-import morgan from 'morgan';
-import authRouter from '../src/routes/auth.routes.js'
-import cartRouter from './routes/cart.routes.js';
-import productRouter from '../src/routes/product.routes.js'
-import wishlistRouter from '../src/routes/wishlist.routes.js'
+import cookieParser from 'cookie-parser'
+import morgan from 'morgan'
 import cors from 'cors'
 import passport from 'passport'
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { config } from './config/config.js';
-
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
+import { config } from './config/config.js'
+import authRouter from './routes/auth.routes.js'
+import cartRouter from './routes/cart.routes.js'
+import productRouter from './routes/product.routes.js'
+import wishlistRouter from './routes/wishlist.routes.js'
 
 const app = express()
 
 app.use(morgan('dev'))
 app.use(express.json())
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(cors({
   origin: "https://clothy-frontend-mu.vercel.app",
-  
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }))
 
 app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
-
+  res.send("Backend is running")
+})
 
 app.use(passport.initialize())
 passport.use(new GoogleStrategy({
@@ -38,12 +35,9 @@ passport.use(new GoogleStrategy({
   return done(null, profile)
 }))
 
- 
-
 app.use("/api/auth", authRouter)
 app.use("/api/products", productRouter)
 app.use("/api/cart", cartRouter)
 app.use("/api/wishlist", wishlistRouter)
 
-
-export default app; 
+export default app
