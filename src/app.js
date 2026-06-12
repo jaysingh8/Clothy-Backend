@@ -32,8 +32,12 @@ passport.use(new GoogleStrategy({
     clientID : config.GOOGLE_CLIENT_ID,
     clientSecret : config.GOOGLE_CLIENT_SECRET,
     callbackURL:"https://clothy-backend-djl7.onrender.com/api/auth/google/callback"
-},(accessToken, refreshToken, profile, done)=>{
-    return done(null,profile)
+},async (accessToken, refreshToken, profile, done)=>{
+    try {
+        return done(null,profile)
+    } catch (error) {
+        return done(error, null)
+    }
 }))
 
 
